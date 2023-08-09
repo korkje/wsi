@@ -1,5 +1,5 @@
 import { assertEquals } from "./deps.ts";
-import { iterable } from "../lib/iterable.ts";
+import iterable from "../lib/iterable.ts";
 
 const NUM_MESSAGES = 100_000;
 
