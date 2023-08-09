@@ -1,34 +1,25 @@
-import { assertEquals } from "https://deno.land/std@0.197.0/testing/asserts.ts";
-import Router from "https://deno.land/x/rp1@v0.1.4/mod.ts";
-import { iterable } from "./iterable.ts";
+import { assertEquals } from "./deps.ts";
+import { iterable } from "../lib/iterable.ts";
 
 const NUM_MESSAGES = 100_000;
 
-const router = new Router();
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-const gattling = async (socket: WebSocket) => {
-    for (let i = 0; i < NUM_MESSAGES; ++i) {
-        if (socket.readyState !== WebSocket.OPEN) {
-            break;
-        }
-        socket.send(i.toString());
-        await sleep(0);
-    }
-
-    socket.close();
-};
-
-router.get("/ws", ({ request }) => {
+Deno.serve({ port: 9001 }, request => {
     const { socket, response } = Deno.upgradeWebSocket(request);
 
-    socket.onopen = () => gattling(socket);
+    socket.onopen = async () => {
+        for (let i = 0; i < NUM_MESSAGES; ++i) {
+            if (socket.readyState !== WebSocket.OPEN) {
+                break;
+            }
+            socket.send(i.toString());
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+
+        socket.close();
+    };
 
     return response;
 });
-
-Deno.serve({ port: 9001 }, router.handle);
 
 Deno.test("receives all messages", async () => {
     const socket = new WebSocket("ws://localhost:9001/ws");

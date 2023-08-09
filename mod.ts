@@ -1,1 +1,1 @@
-export { default, iterable } from "./src/iterable.ts";
+export { default, iterable } from "./lib/iterable.ts";
