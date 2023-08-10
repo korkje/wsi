@@ -25,8 +25,8 @@ Deno.test("receives all messages", async () => {
     const socket = new WebSocket("ws://localhost:8000/ws");
     const messages: string[] = [];
 
-    for await (const event of iterable(socket)) {
-        messages.push(event.data);
+    for await (const data of iterable(socket)) {
+        messages.push(data);
     }
 
     assertEquals(socket.readyState, WebSocket.CLOSED);
@@ -43,22 +43,24 @@ Deno.test("closes on error", async () => {
     const socket = new WebSocket("ws://localhost:8000/ws");
     const messages: string[] = [];
 
-    const testError = new Error();
+    const error = new Error();
+    let thrown: Error | undefined;
 
     try {
-        for await (const event of iterable(socket)) {
-            messages.push(event.data);
+        for await (const data of iterable(socket)) {
+            messages.push(data);
+
             if (messages.length === 10) {
-                throw testError;
+                throw error;
             }
         }
     }
-    catch (error) {
-        assertEquals(error, testError);
+    catch (e) {
+        thrown = e;
     }
 
+    assertEquals(thrown, error);
     assertEquals(socket.readyState, WebSocket.CLOSING);
-
     assertEquals(messages.length, 10);
 
     const numbers = messages.map(Number);
