@@ -3,7 +3,7 @@ import iterable from "../lib/iterable.ts";
 
 const NUM_MESSAGES = 100_000;
 
-Deno.serve({ port: 9001 }, request => {
+Deno.serve(request => {
     const { socket, response } = Deno.upgradeWebSocket(request);
 
     socket.onopen = async () => {
@@ -22,7 +22,7 @@ Deno.serve({ port: 9001 }, request => {
 });
 
 Deno.test("receives all messages", async () => {
-    const socket = new WebSocket("ws://localhost:9001/ws");
+    const socket = new WebSocket("ws://localhost:8000/ws");
     const messages: string[] = [];
 
     for await (const event of iterable(socket)) {
@@ -40,7 +40,7 @@ Deno.test("receives all messages", async () => {
 });
 
 Deno.test("closes on error", async () => {
-    const socket = new WebSocket("ws://localhost:9001/ws");
+    const socket = new WebSocket("ws://localhost:8000/ws");
     const messages: string[] = [];
 
     const testError = new Error();

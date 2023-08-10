@@ -2,10 +2,18 @@ type Resolver = (event: MessageEvent) => void;
 type Rejecter = (event: CloseEvent | ErrorEvent | Event) => void;
 
 export async function* iterable(socket: WebSocket) {
-    await new Promise((resolve, reject) => {
-        socket.onopen = resolve;
-        socket.onerror = reject;
-    });
+    if (socket.readyState === WebSocket.CLOSED) {
+        return;
+    }
+    else if (socket.readyState === WebSocket.CLOSING) {
+        return;
+    }
+    else if (socket.readyState === WebSocket.CONNECTING) {
+        await new Promise((resolve, reject) => {
+            socket.onopen = resolve;
+            socket.onerror = reject;
+        });
+    }
 
     const events: MessageEvent[] = [];
     const resolvers: Resolver[] = [];
@@ -35,16 +43,17 @@ export async function* iterable(socket: WebSocket) {
         if (error instanceof CloseEvent) {
             return;
         }
-        else {
-            throw error;
-        }
+
+        throw error;
     }
     finally {
         socket.onmessage = null;
         socket.onclose = null;
         socket.onerror = null;
 
-        socket.close();
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
     }
 }
 
