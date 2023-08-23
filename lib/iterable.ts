@@ -1,3 +1,5 @@
+import { FIFO } from "./deps.ts";
+
 type Resolver = (event: MessageEvent) => void;
 type Rejecter = (event: CloseEvent | ErrorEvent | Event) => void;
 
@@ -10,7 +12,8 @@ export async function* iterable(socket: WebSocket) {
     }
 
     // deno-lint-ignore no-explicit-any
-    const messages: any[] = [];
+    const messages = new FIFO<any>();
+
     let resolver: Resolver | undefined;
     let rejecter: Rejecter | undefined;
 
