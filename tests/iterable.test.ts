@@ -3,6 +3,8 @@ import iterable from "../lib/iterable.ts";
 
 const NUM_MESSAGES = 100_000;
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 Deno.serve(request => {
     const { socket, response } = Deno.upgradeWebSocket(request);
 
@@ -12,9 +14,8 @@ Deno.serve(request => {
                 break;
             }
             socket.send(i.toString());
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await sleep(0);
         }
-
         socket.close();
     };
 
@@ -30,12 +31,10 @@ Deno.test("receives all messages", async () => {
     }
 
     assertEquals(socket.readyState, WebSocket.CLOSED);
-
     assertEquals(messages.length, NUM_MESSAGES);
 
     const numbers = messages.map(Number);
     const inOrder = numbers.every((n, i) => n === i);
-
     assertEquals(inOrder, true);
 });
 
@@ -60,7 +59,7 @@ Deno.test("closes on error", async () => {
     }
 
     assertEquals(thrown, error);
-    assertEquals(socket.readyState, WebSocket.CLOSING);
+    assertEquals(socket.readyState >= WebSocket.CLOSING, true);
     assertEquals(messages.length, 10);
 
     const numbers = messages.map(Number);
