@@ -1,32 +1,37 @@
-export const open = async (socket: WebSocket) => {
-    if (socket.readyState === WebSocket.OPEN) {
-        return;
-    }
+export const open = (socket: WebSocket) =>
+    new Promise<void>((resolve, reject) => {
+        if (socket.readyState === WebSocket.OPEN) {
+            return resolve();
+        }
+        else if (socket.readyState === WebSocket.CLOSED) {
+            return reject(new Error("Socket is closed"));
+        }
+        else if (socket.readyState === WebSocket.CLOSING) {
+            return reject(new Error("Socket is closing"));
+        }
 
-    if (socket.readyState === WebSocket.CLOSED) {
-        throw new Error("Socket is closed");
-    }
-
-    if (socket.readyState === WebSocket.CLOSING) {
-        throw new Error("Socket is closing");
-    }
-
-    await new Promise<void>((resolve, reject) => {
-        const onOpen = () => {
+        const removeEventListeners = () => {
             socket.removeEventListener("open", onOpen);
+            socket.removeEventListener("close", onClose);
             socket.removeEventListener("error", onError);
+        };
 
+        const onOpen = () => {
+            removeEventListeners();
             resolve();
         };
 
-        const onError = (event: ErrorEvent | Event) => {
-            socket.removeEventListener("open", onOpen);
-            socket.removeEventListener("error", onError);
+        const onClose = (event: CloseEvent) => {
+            removeEventListeners();
+            reject(event);
+        }
 
+        const onError = (event: ErrorEvent | Event) => {
+            removeEventListeners();
             reject(event);
         };
 
         socket.addEventListener("open", onOpen);
+        socket.addEventListener("close", onClose);
         socket.addEventListener("error", onError);
     });
-};

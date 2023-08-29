@@ -1,4 +1,5 @@
 # wsi
+
 Asynchronously iterate over `WebSocket` events.
 
 ```ts

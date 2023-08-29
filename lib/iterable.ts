@@ -22,9 +22,15 @@ export async function* iterable(socket: WebSocket) {
         rejecter = reject;
     };
 
-    const onMessage = ({ data }: MessageEvent) => resolver
-        ? (resolver(data), resolver = undefined)
-        : messages.push(data);
+    const onMessage = ({ data }: MessageEvent) => {
+        if (resolver) {
+            resolver(data);
+            resolver = undefined;
+        }
+        else {
+            messages.push(data);
+        }
+    };
 
     const onClose = (event: CloseEvent) => rejecter?.(event);
     const onError = (event: ErrorEvent | Event) => rejecter?.(event);
