@@ -13,7 +13,7 @@ for await (const data of iterable(socket)) {
 }
 ```
 
-Also exports `open`, which creates a `Promise` that resolves when socket opens.
+Also exports `open`, which creates a `Promise` that resolves when the socket opens.
 
 ```ts
 import iterable, { open } from "https://deno.land/x/wsi/mod.ts";
